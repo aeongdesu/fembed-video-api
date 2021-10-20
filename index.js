@@ -5,12 +5,26 @@ const fetch = require("node-fetch")
 /* -------------------------------------------------- */
 
 const getJSON = async (id) => {
-    const url = await (await fetch(`https://fembed.com/v/${id}`).then(response => response.url)).replace("v", "api/source")
+    const url = await (await fetch(`https://fembed.com/v/${id}`).then(response => response["url"])).replace("v", "api/source")
     const video = await fetch(url, {
         method: "POST"
     }).then(response => response.json())
-    if (!video.success) return null
+    if (!video["success"]) return { success: false }
     return video
+}
+
+const getVideoURL = async (videoJSON) => {
+    const data = []
+    for (filedata of videoJSON) {
+    const url = await fetch(filedata["file"]).then(data => data["url"])
+        data.push({
+            file: url,
+            label: filedata["label"],
+            type: filedata["type"]
+        })
+    }
+
+    return data
 }
 
 /* -------------------------------------------------- */
@@ -27,22 +41,23 @@ server.get("/:id", async (req, res) => {
 server.get("/:id/player", async (req, res) => {
     const id = req.params.id
     const videoJSON = await getJSON(id)
-    if (!videoJSON) return res.json(null)
-    res.json(videoJSON.player)
+    if (!videoJSON["success"]) return res.json({ success: false })
+    res.json(videoJSON["player"])
 })
 
 server.get("/:id/video", async (req, res) => {
     const id = req.params.id
     const videoJSON = await getJSON(id)
-    if (!videoJSON) return res.json(null)
-    res.json(videoJSON.data)
+    if (!videoJSON["success"]) return res.json({ success: false })
+    res.json(await getVideoURL(videoJSON["data"]))
 })
+
 
 server.get("/:id/captions", async (req, res) => {
     const id = req.params.id
     const videoJSON = await getJSON(id)
-    if (!videoJSON) return res.json(null)
-    res.json(videoJSON.captions)
+    if (!videoJSON["success"]) return res.json({ success: false })
+    res.json(videoJSON["captions"])
 })
 
 /* -------------------------------------------------- */
