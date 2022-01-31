@@ -1,0 +1,1 @@
+{"id":"0062dcfe-6e2a-4e7e-82ac-5f740285b0b4","space":5402,"runtime":"nodejs14.x","name":"fembed-api","path":"w1yup1","project":"c0mtabgc","account":"144798365827","region":"ap-southeast-1","deps":["express@^4.17.2","got-cjs@^12.0.1"],"envs":null,"public":false,"log_level":"","cron":""}
