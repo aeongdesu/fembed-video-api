@@ -1,14 +1,11 @@
 const express = require("express")
 const server = express()
-const fetch = require("node-fetch")
+const { got } = require("got-cjs")
 
 /* -------------------------------------------------- */
 
 const getJSON = async (id) => {
-    const url = await (await fetch(`https://fembed.com/v/${id}`).then(response => response["url"])).replace("v", "api/source")
-    const video = await fetch(url, {
-        method: "POST"
-    }).then(response => response.json())
+    const video = await got.post(`https://fembed.com/api/source/${id}`).json()
     if (!video["success"]) return { success: false }
     return video
 }
@@ -16,9 +13,8 @@ const getJSON = async (id) => {
 const getVideoURL = async (videoJSON) => {
     const data = []
     for (filedata of videoJSON) {
-    const url = await fetch(filedata["file"]).then(data => data["url"])
         data.push({
-            file: url,
+            file: filedata["file"],
             label: filedata["label"],
             type: filedata["type"]
         })
@@ -29,40 +25,63 @@ const getVideoURL = async (videoJSON) => {
 
 /* -------------------------------------------------- */
 
+server.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    return next()
+})
+
 server.get("/", async (req, res) => {
-    res.redirect("https://github.com/KeepSOBP/fembed-video-api")
+    return res.json({ success: true, github: "https://github.com/aeongdesu/fembed-video-api" })
 })
 
 server.get("/:id", async (req, res) => {
     const id = req.params.id
-    res.json(await getJSON(id))
+    return res.json(await getJSON(id))
 })
 
 server.get("/:id/player", async (req, res) => {
+    
     const id = req.params.id
     const videoJSON = await getJSON(id)
-    if (!videoJSON["success"]) return res.json({ success: false })
+    if (!videoJSON["success"]) return res.status(404).json({ success: false })
     res.json(videoJSON["player"])
 })
 
 server.get("/:id/video", async (req, res) => {
+    
     const id = req.params.id
     const videoJSON = await getJSON(id)
-    if (!videoJSON["success"]) return res.json({ success: false })
-    res.json(await getVideoURL(videoJSON["data"]))
+    if (!videoJSON["success"]) return res.sendStatus(404)
+    return res.json(videoJSON["data"])
 })
 
+server.get("/:id/video/:type", async (req, res) => {
+    
+    const id = req.params.id
+    const type = req.params.type
+    const videoJSON = await getJSON(id)
+    if (!videoJSON["success"]) return res.sendStatus(404)
+    const json = await getVideoURL(videoJSON["data"])
+    for (video in json) {
+        if (json[video].label === type + "p") {
+            res.setHeader("Content-Type", "video/mp4")
+            return got.stream(json[video].file).pipe(res)
+        }
+    }
+    return res.status(404).json({ success: false })
+})
 
 server.get("/:id/captions", async (req, res) => {
+    
     const id = req.params.id
     const videoJSON = await getJSON(id)
-    if (!videoJSON["success"]) return res.json({ success: false })
+    if (!videoJSON["success"]) return res.status(404).json({ success: false })
     res.json(videoJSON["captions"])
 })
 
 /* -------------------------------------------------- */
 
-if (process.env.DETA_RUNTIME == null) {
+if (!process.env.DETA_RUNTIME) {
 server.listen(8080, () => {
     console.log("Example app listening at http://localhost:8080")
 })

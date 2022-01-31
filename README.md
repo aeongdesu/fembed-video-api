@@ -11,7 +11,16 @@ https://fapi.deta.dev/:videoid
 
 ---
 
-**Will return `{ success: false }` if video not found or wrong video id**
+**It will return `{ success: false }` if video not found or wrong video id**
+
+### GET `/`
+
+```json
+{
+  "success": true,
+  "github": "https://github.com/aeongdesu/fembed-video-api"
+}
+```
 
 ### GET `/:videoid`
 Returns fembed's source api(`/api/source/videoid`).
@@ -52,10 +61,13 @@ Returns video array with direct url.
 ]
 ```
 
-### GET `/:videoid/captions`
-idk about this but returns captions object
+### GET `/:videoid/video/:quality`
+Returns video poggers
 
-Will return `[]` if no captions
+### GET `/:videoid/captions`
+idk about this but return the captions object
+
+It will return `[]` if no captions
 
 ---
 
