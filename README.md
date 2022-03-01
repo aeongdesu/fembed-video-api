@@ -62,6 +62,8 @@ Returns video array with direct url.
 ```
 
 ### GET `/:videoid/video/:quality`
+⚠️ Untested and having issue, [#2](https://github.com/aeongdesu/fembed-video-api/issues/2)
+
 Returns video poggers
 
 ### GET `/:videoid/captions`
