@@ -1,11 +1,12 @@
 const express = require("express")
 const server = express()
-const { got } = require("got-cjs")
+const fetch = require("node-fetch")
 
 /* -------------------------------------------------- */
 
 const getJSON = async (id) => {
-    const video = await got.post(`https://fembed.com/api/source/${id}`).json()
+    const redirect = await fetch(`https://fembed.com/v/${id}`).then(res => res.url.replace("/v/", "/api/source/"))
+    const video = await fetch(redirect, { method: "POST" }).then(res => res.json())
     if (!video["success"]) return { success: false }
     return video
 }
@@ -40,7 +41,6 @@ server.get("/:id", async (req, res) => {
 })
 
 server.get("/:id/player", async (req, res) => {
-    
     const id = req.params.id
     const videoJSON = await getJSON(id)
     if (!videoJSON["success"]) return res.status(404).json({ success: false })
@@ -48,7 +48,6 @@ server.get("/:id/player", async (req, res) => {
 })
 
 server.get("/:id/video", async (req, res) => {
-    
     const id = req.params.id
     const videoJSON = await getJSON(id)
     if (!videoJSON["success"]) return res.sendStatus(404)
@@ -56,7 +55,6 @@ server.get("/:id/video", async (req, res) => {
 })
 
 server.get("/:id/video/:type", async (req, res) => {
-    
     const id = req.params.id
     const type = req.params.type
     const videoJSON = await getJSON(id)
@@ -64,8 +62,15 @@ server.get("/:id/video/:type", async (req, res) => {
     const json = await getVideoURL(videoJSON["data"])
     for (video in json) {
         if (json[video].label === type + "p") {
-            res.setHeader("Content-Type", "video/mp4")
-            return got.stream(json[video].file).pipe(res)
+            return await fetch(json[video].file).then(response => {
+              res.set({
+                'content-length': response.headers.get('content-length'),
+                'content-disposition': `attachment; filename='${json[video].type}.mp4'`,
+                'content-type': response.headers.get('content-type'),        
+              })
+              response.body.pipe(res);
+              response.body.on('error', () => {})
+            })
         }
     }
     return res.status(404).json({ success: false })
