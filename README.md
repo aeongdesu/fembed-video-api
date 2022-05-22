@@ -62,12 +62,17 @@ Returns video array with direct url.
 ```
 
 ### GET `/:videoid/video/:quality`
-Returns downloadable video
+Returns video
+
+⚠️ **Please don't use example site(fembed.aeong.one) on any public sites, host yourself and use it instead.**
 
 ### GET `/:videoid/captions`
 idk about this but return the captions object
 
 It will return `[]` if no captions
+
+### GET `/:videoid/captions/:captionid`
+Returns caption file
 
 ---
 
