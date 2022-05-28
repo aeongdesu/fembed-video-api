@@ -39,6 +39,7 @@ server.use((req, res, next) => {
 })
 
 server.get("/", async (req, res) => {
+    /* Because of license, please do not edit this! otherwise I'll report you. */
     return res.json({ success: true, github: "https://github.com/aeongdesu/fembed-video-api" })
 })
 
