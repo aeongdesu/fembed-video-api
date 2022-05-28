@@ -1,7 +1,11 @@
 # Fembed-video-API
 Please leave an issue if not working
 
+pull request welcome!
+
 ## Example
+**⚠️ Please don't use example site(fembed.aeong.one) on any public sites, host yourself and use it instead. ⚠️**
+
 https://fembed.aeong.one/:videoid
 
 ## Documentation
