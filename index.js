@@ -42,8 +42,19 @@ server.get("/", async (req, res) => {
     return res.json({ success: true, github: "https://github.com/aeongdesu/fembed-video-api" })
 })
 
+server.get("/proxy", async (req, res) => {
+    if (!req.query.url || !(/https\:\/\/fvs\.io\/redirector\?token\=.*/).test(req.query.url)) return res.status(404).json({ success: false })
+    return await fetch(req.query.url, { headers: { range: req.headers.range } }).then(async response => {
+        if (!response.ok) return res.status(404).json({ success: false })
+        res.set(await getFetchHeader(response.headers))
+        response.body.pipe(res.status(206))
+        response.body.on('error', () => { })
+    })
+})
+
 server.get("/:id", async (req, res) => {
     const id = req.params.id
+    if (id == "favicon.ico") return res.status(404).json({ success: false })
     return res.json(await getJSON(id))
 })
 
@@ -57,7 +68,7 @@ server.get("/:id/player", async (req, res) => {
 server.get("/:id/video", async (req, res) => {
     const id = req.params.id
     const videoJSON = await getJSON(id)
-    if (!videoJSON["success"]) return res.sendStatus(404)
+    if (!videoJSON["success"]) return res.status(404).json({ success: false })
     return res.json(videoJSON["data"])
 })
 
@@ -65,19 +76,15 @@ server.get("/:id/video/:type", async (req, res) => {
     const id = req.params.id
     const type = req.params.type
     const videoJSON = await getJSON(id)
-    if (!videoJSON["success"]) return res.sendStatus(404)
+    if (!videoJSON["success"]) return res.status(404).json({ success: false })
     const json = await getVideoURL(videoJSON["data"])
     for (video in json) {
-        if (json[video].label === type + "p") {
-            return await fetch(json[video].file, { headers: { range: req.headers.range } }).then(async response => {
-                res.set(await getFetchHeader(response.headers))
-                response.body.pipe(res.status(206))
-                response.body.on('error', () => { })
-            })
-        }
+        if (json[video].label === type + "p") return res.redirect(`/proxy?url=${encodeURIComponent(json[video].file)}`)
     }
     return res.status(404).json({ success: false })
 })
+
+
 
 server.get("/:id/captions", async (req, res) => {
     const id = req.params.id
