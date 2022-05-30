@@ -31,6 +31,8 @@ const getFetchHeader = async (headers) => {
     return data
 }
 
+const regex = /https\:\/\/fvs\.io\/redirector\?token\=.*/ // regex compile
+
 /* -------------------------------------------------- */
 
 server.use((req, res, next) => {
@@ -44,7 +46,7 @@ server.get("/", async (req, res) => {
 })
 
 server.get("/proxy", async (req, res) => {
-    if (!req.query.url || !(/https\:\/\/fvs\.io\/redirector\?token\=.*/).test(req.query.url)) return res.status(404).json({ success: false })
+    if (!req.query.url || !(regex).test(req.query.url)) return res.status(404).json({ success: false })
     return await fetch(req.query.url, { headers: { range: req.headers.range } }).then(async response => {
         if (!response.ok) return res.status(404).json({ success: false })
         res.set(await getFetchHeader(response.headers))
@@ -84,8 +86,6 @@ server.get("/:id/video/:type", async (req, res) => {
     }
     return res.status(404).json({ success: false })
 })
-
-
 
 server.get("/:id/captions", async (req, res) => {
     const id = req.params.id
