@@ -113,10 +113,7 @@ server.get("/:id/captions/:capid", async (req, res) => {
 
 /* -------------------------------------------------- */
 
-if (!process.env.DETA_RUNTIME) {
-    server.listen(8080, () => {
-        console.log("Example app listening at http://localhost:8080")
-    })
-}
 
-module.exports = server
+  server.listen(8080, () => {
+    console.log("Example app listening at http://localhost:8080")
+  })
